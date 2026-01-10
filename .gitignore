@@ -1,0 +1,6 @@
+*.log
+*.db
+backups/
+logs/
+test/
+

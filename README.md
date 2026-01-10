@@ -11,7 +11,7 @@ Painel de gerenciamento SSH / VPN com:
 
 ## Instalação
 ```bash
-git clone https://TOKEN@github.com/SEUUSUARIO/REPO.git
+git clone https://github.com/3rian/MaritimaVPN-Painel.git
 cd REPO
 chmod +x install.sh
 ./install.sh

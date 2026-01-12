@@ -1,28 +1,55 @@
 #!/bin/bash
 set -e
 
-echo "[+] Instalando Marítima VPN (cópia fiel)"
+echo "[+] Instalando Marítima VPN (cópia fiel de produção)"
 
+# ===== ROOT =====
+if [ "$EUID" -ne 0 ]; then
+  echo "Execute como root"
+  exit 1
+fi
+
+# ===== PACOTES BASE =====
 apt update -y
-apt install -y bash curl python3 net-tools cron iptables fail2ban
+apt install -y \
+  curl wget git nano unzip \
+  python3 python3-pip \
+  openssh-server \
+  net-tools iptables iptables-persistent \
+  cron fail2ban \
+  speedtest-cli
 
-# Painel principal
-install -m 755 files/maritima /usr/bin/maritima
+# ===== XRAY (OFICIAL) =====
+if ! command -v xray >/dev/null; then
+  echo "[+] Instalando Xray"
+  bash <(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)
+fi
 
-# Dados e scripts
+systemctl enable xray
+systemctl restart xray || true
+
+# ===== DIRETÓRIOS =====
 mkdir -p /opt/maritima
-cp -a opt/* /opt/maritima/
 
-# Permissões
-chmod +x /opt/maritima/*.sh /opt/maritima/*.py 2>/dev/null || true
+# ===== ARQUIVOS =====
+cp files/maritima /usr/bin/maritima
+chmod +x /usr/bin/maritima
 
-# Systemd
+cp -r opt/* /opt/maritima/
+
+chmod +x /opt/maritima/*.sh
+chmod +x /opt/maritima/*.py
+
+# ===== SYSTEMD =====
 cp systemd/*.service /etc/systemd/system/
 systemctl daemon-reload
-systemctl enable maritima-ws maritima-http maritima-badvpn
-systemctl restart maritima-ws maritima-http maritima-badvpn
 
-echo
-echo "[✓] Marítima instalado com sucesso"
-echo "Use o comando: maritima"
+systemctl enable maritima-ws maritima-http maritima-badvpn || true
+systemctl restart maritima-ws maritima-http maritima-badvpn || true
+
+# ===== FINAL =====
+echo "=================================="
+echo " Marítima VPN instalado com sucesso"
+echo " Comando: maritima"
+echo "=================================="
 

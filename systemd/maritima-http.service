@@ -1,0 +1,13 @@
+[Unit]
+Description=Maritima HTTP Proxy SSH
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /opt/maritima/http-proxy.py
+Restart=always
+User=root
+
+[Install]
+WantedBy=multi-user.target
+

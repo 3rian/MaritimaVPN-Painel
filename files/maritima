@@ -1,3 +1,4 @@
+nano .gitignore
 #!/usr/bin/env bash
 export TERM=xterm
 set +e
@@ -1231,14 +1232,7 @@ fail2ban_banned_ips() {
 # Configurar cron job
 setup_cron_job
 
-while true; do
-    clear
-    
-    echo -e "${BANNER_CYAN}╔══════════════════════════════════════════════════════╗${NC}"
-    echo -e "${BANNER_CYAN}║${NC} ${BLACK}🏴‍☠️${WHITE}☠️${BANNER_RED}👿${NC} ${BANNER_CYAN}MARÍTIMA VPN PAINEL${NC} ${BANNER_RED}👿${WHITE}☠️${BLACK}🏴${NC} ${BANNER_CYAN}║${NC}"
-    echo -e "${BANNER_CYAN}╠══════════════════════════════════════════════════════╣${NC}"
-    echo -e "${BANNER_CYAN}║${NC} ${BANNER_YELLOW}Status${NC} ${BANNER_CYAN}|${NC} ${BANNER_YELLOW}Xray${NC} ${BANNER_CYAN}|${NC} ${BANNER_YELLOW}WebSocket${NC} ${BANNER_CYAN}|${NC} ${BANNER_YELLOW}BadVPN${NC} ${BANNER_CYAN}|${NC} ${BANNER_YELLOW}Proxy${NC} ${BANNER_CYAN}║${NC}"
-    echo -e "${BANNER_CYAN}╚══════════════════════════════════════════════════════╝${NC}"
+
     echo -e "${NC}"
     echo -e "${BANNER_CYAN}══════════════════════════════${NC}"
     echo -e "${YELLOW}1)${NC} 👥 Usuários"

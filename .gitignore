@@ -1,6 +1,11 @@
 *.log
 *.db
 backups/
+<<<<<<< HEAD
 logs/
 test/
+=======
+test/
+logs/
+>>>>>>> 3ed1f1d24d74c5e72d3460eb32294d1db7f0f5ed
 

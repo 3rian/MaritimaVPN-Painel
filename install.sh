@@ -46,7 +46,6 @@ if ! command -v speedtest >/dev/null; then
   apt install -y speedtest
 fi
 
-<<<<<<< HEAD
 # ===== XRAY =====
 =======
 # =========================
@@ -61,7 +60,7 @@ fi
 systemctl enable xray
 systemctl restart xray
 
-<<<<<<< HEAD
+
 # ===== BADVPN =====
 if [ ! -f /usr/local/bin/badvpn-udpgw ]; then
   echo "[+] Instalando BadVPN"
@@ -125,7 +124,7 @@ cp systemd/*.service /etc/systemd/system/
 systemctl daemon-reexec
 systemctl daemon-reload
 
-<<<<<<< HEAD
+
 systemctl enable maritima-ws maritima-http maritima-badvpn
 systemctl restart maritima-ws maritima-http maritima-badvpn
 

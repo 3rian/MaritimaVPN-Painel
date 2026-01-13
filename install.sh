@@ -15,7 +15,6 @@ fi
 # =========================
 # PACOTES BASE
 # =========================
->>>>>>> fix: instalador completo e funcional (xray, badvpn, speedtest)
 apt update -y
 apt install -y \
   curl wget git nano unzip \
@@ -23,7 +22,7 @@ apt install -y \
   openssh-server \
   net-tools iptables iptables-persistent \
   cron fail2ban \
-<<<<<<< HEAD
+
   sqlite3
 
 # ===== SPEEDTEST (OFICIAL OOKLA) =====

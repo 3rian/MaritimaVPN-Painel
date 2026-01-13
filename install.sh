@@ -150,5 +150,5 @@ echo
 echo "[✓] Marítima VPN instalado com sucesso"
 echo "Comando principal: maritima"
 echo
->>>>>>> fix: instalador completo e funcional (xray, badvpn, speedtest)
+# fix: instalador completo e funcional (xray, badvpn, speedtest)
 

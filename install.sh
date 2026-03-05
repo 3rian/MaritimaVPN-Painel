@@ -24,10 +24,10 @@ fi
 
 # Variáveis
 REPO_URL="https://github.com/3rian/MaritimaVPN-Painel.git"
-BRANCH="master"  # Altere para 'main' se necessário
+BRANCH="master"
 TEMP_DIR="/tmp/maritima-painel"
-DOMAIN="maritimavpn.shop"  # Altere para seu domínio real, se desejar
-USE_LETSENCRYPT=false       # Mude para true se quiser certificado real
+DOMAIN="maritimavpn.shop"  # valor padrão, pode ser alterado
+USE_LETSENCRYPT=false
 
 # Perguntar ao usuário se quer usar Let's Encrypt
 read -p "Deseja configurar certificado SSL com Let's Encrypt (requer domínio válido)? (s/N): " -n 1 -r
@@ -38,9 +38,13 @@ if [[ $REPLY =~ ^[Ss]$ ]]; then
     if [[ -z "$DOMAIN" ]]; then
         error "Domínio não pode estar vazio."
     fi
+else
+    log "Você optou por não usar Let's Encrypt. Será gerado um certificado autoassinado."
+    # Pode perguntar o domínio também? Vamos manter o padrão.
 fi
 
 log "Iniciando instalação do Marítima VPN Panel..."
+log "Domínio configurado: $DOMAIN"
 
 # Atualizar pacotes
 log "Atualizando lista de pacotes..."
@@ -48,7 +52,7 @@ apt update
 
 # Instalar dependências
 log "Instalando dependências (nginx, python3, pip, certbot, git)..."
-apt install -y curl wget git unzip nginx python3 python3-pip certbot
+apt install -y curl wget git unzip nginx python3 python3-pip certbot python3-certbot-nginx
 
 # Instalar Xray
 log "Instalando Xray..."
@@ -100,16 +104,19 @@ ln -sf /etc/nginx/sites-available/vless-ws /etc/nginx/sites-enabled/
 
 # Gerar UUIDs para o Xray (substituir placeholders)
 log "Gerando UUIDs para o Xray..."
+# Gera 4 UUIDs
 UUID1=$(cat /proc/sys/kernel/random/uuid)
 UUID2=$(cat /proc/sys/kernel/random/uuid)
 UUID3=$(cat /proc/sys/kernel/random/uuid)
 UUID4=$(cat /proc/sys/kernel/random/uuid)
 
+# Substitui placeholders no config.json (assumindo CHANGE_UUID_1, CHANGE_UUID_2, etc.)
+sed -i "s/CHANGE_UUID_1/$UUID1/g" /usr/local/etc/xray/config.json
+sed -i "s/CHANGE_UUID_2/$UUID2/g" /usr/local/etc/xray/config.json
+sed -i "s/CHANGE_UUID_3/$UUID3/g" /usr/local/etc/xray/config.json
+sed -i "s/CHANGE_UUID_4/$UUID4/g" /usr/local/etc/xray/config.json
+# Se houver placeholder genérico CHANGE_UUID, substitui pelo primeiro (opcional)
 sed -i "s/CHANGE_UUID/$UUID1/g" /usr/local/etc/xray/config.json
-# Se houver múltiplos placeholders (CHANGE_UUID_1, etc.), use sed com mais cuidado.
-# Exemplo:
-# sed -i "s/CHANGE_UUID_1/$UUID1/g" /usr/local/etc/xray/config.json
-# sed -i "s/CHANGE_UUID_2/$UUID2/g" /usr/local/etc/xray/config.json
 
 # Página de fallback simples
 cat > /var/www/fallback/index.html <<'EOF'
@@ -123,7 +130,25 @@ EOF
 # Configurar SSL
 if [[ "$USE_LETSENCRYPT" == true ]]; then
     log "Obtendo certificado Let's Encrypt para $DOMAIN..."
-    certbot --nginx -d "$DOMAIN" --non-interactive --agree-tos --email admin@"$DOMAIN" || warn "Falha ao obter certificado. Usando autoassinado."
+    if certbot --nginx -d "$DOMAIN" --non-interactive --agree-tos --email admin@"$DOMAIN"; then
+        log "Certificado Let's Encrypt obtido com sucesso."
+        # Os arquivos de configuração já devem estar apontando para os caminhos corretos (gerados pelo certbot)
+        # Mas vamos garantir que os caminhos estão certos (o certbot modifica os arquivos)
+    else
+        warn "Falha ao obter certificado. Gerando autoassinado e ajustando configurações..."
+        # Gera autoassinado
+        mkdir -p /etc/nginx/ssl
+        openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+            -keyout /etc/nginx/ssl/selfsigned.key \
+            -out /etc/nginx/ssl/selfsigned.crt \
+            -subj "/C=BR/ST=SP/L=SaoPaulo/O=Maritima/CN=$DOMAIN"
+
+        # Substitui os caminhos nos arquivos de configuração do Nginx
+        sed -i "s|/etc/letsencrypt/live/$DOMAIN/fullchain.pem|/etc/nginx/ssl/selfsigned.crt|g" /etc/nginx/sites-available/vless-ws
+        sed -i "s|/etc/letsencrypt/live/$DOMAIN/privkey.pem|/etc/nginx/ssl/selfsigned.key|g" /etc/nginx/sites-available/vless-ws
+        sed -i "s|/etc/letsencrypt/live/$DOMAIN/fullchain.pem|/etc/nginx/ssl/selfsigned.crt|g" /etc/nginx/conf.d/sshws-multi.conf
+        sed -i "s|/etc/letsencrypt/live/$DOMAIN/privkey.pem|/etc/nginx/ssl/selfsigned.key|g" /etc/nginx/conf.d/sshws-multi.conf
+    fi
 else
     log "Gerando certificado SSL autoassinado..."
     mkdir -p /etc/nginx/ssl
@@ -131,6 +156,12 @@ else
         -keyout /etc/nginx/ssl/selfsigned.key \
         -out /etc/nginx/ssl/selfsigned.crt \
         -subj "/C=BR/ST=SP/L=SaoPaulo/O=Maritima/CN=$DOMAIN"
+
+    # Substitui os caminhos nos arquivos de configuração do Nginx
+    sed -i "s|/etc/letsencrypt/live/$DOMAIN/fullchain.pem|/etc/nginx/ssl/selfsigned.crt|g" /etc/nginx/sites-available/vless-ws
+    sed -i "s|/etc/letsencrypt/live/$DOMAIN/privkey.pem|/etc/nginx/ssl/selfsigned.key|g" /etc/nginx/sites-available/vless-ws
+    sed -i "s|/etc/letsencrypt/live/$DOMAIN/fullchain.pem|/etc/nginx/ssl/selfsigned.crt|g" /etc/nginx/conf.d/sshws-multi.conf
+    sed -i "s|/etc/letsencrypt/live/$DOMAIN/privkey.pem|/etc/nginx/ssl/selfsigned.key|g" /etc/nginx/conf.d/sshws-multi.conf
 fi
 
 # Ajustar permissões
@@ -156,4 +187,4 @@ echo -e "${YELLOW}Cliente 1: $UUID1"
 echo "Cliente 2: $UUID2"
 echo "Cliente 3: $UUID3"
 echo "Cliente 4: $UUID4${NC}"
-warn "Caso tenha usado certificado autoassinado, os clientes precisarão aceitá-lo ou usar 'Insecure'."
+warn "Caso tenha usado certificado autoassinado, os clientes precisarão aceitá-lo ou usar 'allowInsecure'."

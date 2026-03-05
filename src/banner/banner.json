@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "updated_at": "2026-02-25T19:56:27-03:00",
+  "items": [
+    {
+      "text": "Marítima VPN",
+      "color": "cyan",
+      "size": "lg",
+      "bold": true
+    },
+    {
+      "text": "Sistema estável. Bom uso!",
+      "color": "green",
+      "size": "md"
+    },
+    {
+      "text": "Aviso: respeite o limite de conexões.",
+      "color": "yellow",
+      "size": "sm"
+    }
+  ]
+}

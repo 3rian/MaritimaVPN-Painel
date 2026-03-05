@@ -1,0 +1,14 @@
+[Unit]
+Description=Maritima WebSocket SSH
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/maritima/ws
+ExecStart=/usr/bin/python3 /opt/maritima/ws/wsproxy.py 8880
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

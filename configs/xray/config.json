@@ -1,0 +1,49 @@
+{
+  "log": {
+    "loglevel": "warning"
+  },
+  "inbounds": [
+    {
+      "listen": "127.0.0.1",
+      "port": 10000,
+      "protocol": "vless",
+      "settings": {
+        "clients": [
+          {
+            "id": "28910957-ac93-469c-a50b-2d19b1b29064",
+            "email": "brian"
+          },
+          {
+            "id": "954361d9-31fe-449e-be5e-4e6ad4437e71",
+            "email": "tadeu"
+          },
+          {
+            "id": "a98b91e0-7559-4b5a-9877-b7776cb1f2c7",
+            "email": "admin@maritima"
+          },
+          {
+            "id": "ea6680e2-4bb1-4f45-9993-92d6cb312e98",
+            "email": "zuza"
+          }
+        ],
+        "decryption": "none"
+      },
+      "streamSettings": {
+        "network": "ws",
+        "security": "none",
+        "wsSettings": {
+          "path": "/mrt-7f3c9a2b",
+          "headers": {
+            "Host": "vless.maritimavpn.shop"
+          }
+        }
+      }
+    }
+  ],
+  "outbounds": [
+    {
+      "protocol": "freedom",
+      "settings": {}
+    }
+  ]
+}

@@ -8,6 +8,9 @@ Painel de gerenciamento SSH / VPN com:
 - Sincronização forçada
 - Proxy HTTP, WebSocket, Xray
 - Segurança e manutenção
+- chmod +x /root/maritima.sh
+ln -sf /root/maritima.sh /usr/local/bin/maritima
+hash -r
 
 ## Instalação
 ```bash

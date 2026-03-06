@@ -29,6 +29,53 @@ TEMP_DIR="/tmp/maritima-painel"
 DOMAIN="maritimavpn.shop"  # valor padrão, pode ser alterado
 USE_LETSENCRYPT=false
 
+# Função para instalar o BadVPN
+instalar_badvpn() {
+    log "Instalando BadVPN UDPGW..."
+
+    if command -v badvpn-udpgw >/dev/null 2>&1; then
+        warn "BadVPN já está instalado. Verificando serviço..."
+    else
+        apt install -y cmake make gcc g++ build-essential
+
+        rm -rf /usr/local/src/badvpn
+        git clone https://github.com/ambrop72/badvpn.git /usr/local/src/badvpn
+
+        cd /usr/local/src/badvpn
+        mkdir -p badvpn-build
+        cd badvpn-build
+
+        cmake .. -DBUILD_NOTHING_BY_DEFAULT=1 -DBUILD_UDPGW=1
+        make -j"$(nproc)"
+
+        install -m 755 udpgw/badvpn-udpgw /usr/local/bin/badvpn-udpgw
+    fi
+
+    cat > /etc/systemd/system/badvpn-udpgw.service << 'EOF'
+[Unit]
+Description=BadVPN UDPGW
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/badvpn-udpgw --listen-addr 127.0.0.1:7300 --max-clients 5000 --max-connections-for-client 1000
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+    systemctl daemon-reload
+    systemctl enable --now badvpn-udpgw
+
+    if systemctl is-active --quiet badvpn-udpgw; then
+        log "BadVPN instalado e ativado com sucesso."
+    else
+        error "Falha ao iniciar o BadVPN."
+    fi
+}
+
 # Perguntar ao usuário se quer usar Let's Encrypt
 read -p "Deseja configurar certificado SSL com Let's Encrypt (requer domínio válido)? (s/N): " -n 1 -r
 echo
@@ -164,6 +211,9 @@ else
     sed -i "s|/etc/letsencrypt/live/$DOMAIN/privkey.pem|/etc/nginx/ssl/selfsigned.key|g" /etc/nginx/conf.d/sshws-multi.conf
 fi
 
+# Instalar BadVPN
+instalar_badvpn
+
 # Ajustar permissões
 chmod 600 /opt/maritima/users.db
 chown -R www-data:www-data /var/www/fallback
@@ -174,8 +224,8 @@ nginx -t || error "Configuração do Nginx inválida."
 # Recarregar serviços
 log "Iniciando serviços..."
 systemctl daemon-reload
-systemctl enable nginx xray maritima-ws
-systemctl restart nginx xray maritima-ws
+systemctl enable nginx xray maritima-ws badvpn-udpgw
+systemctl restart nginx xray maritima-ws badvpn-udpgw
 systemctl restart sshd
 
 # Limpeza

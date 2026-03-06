@@ -3,7 +3,8 @@
  ln -sf /root/maritima.sh /usr/local/bin/maritima
  hash -r
 
-# Comando para instalar certificado sudo certbot --nginx -d SEU DOMINIO AQUI
+# Comando para instalar certificado
+sudo certbot --nginx -d SEU DOMINIO AQUI
 # MaritimaVPN-Painel
 Painel Admin MarítimaVPN SSH
 # Marítima VPN Painel

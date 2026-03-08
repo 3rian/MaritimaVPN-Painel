@@ -100,11 +100,8 @@ save_self() {
 
 # ================= STATUS VPS =================
 
-# Função para desenhar uma linha centralizada dentro da caixa de 38 colunas
-# Uso: centered_line "texto com cores (opcionais)"
 centered_line() {
     local text="$1"
-    # Remove códigos ANSI para calcular o comprimento visível
     local visible=$(echo -e "$text" | sed 's/\x1b\[[0-9;]*m//g')
     local visible_len=${#visible}
     local box_width=38
@@ -125,36 +122,42 @@ centered_line() {
 status_vps() {
     clear
 
-    # Cabeçalho com caixa fixa e título centralizado
     printf "%b╔══════════════════════════════════════╗%b\n" "$BANNER_CYAN" "$NC"
-    centered_line "🏴‍☠️ ${BANNER_YELLOW}MARÍTIMA VPN PANEL${NC} 🏴‍☠️"
+    centered_line "🏴☠️ ${BANNER_YELLOW}MARÍTIMA VPN PANEL${NC} 🏴☠️"
     printf "%b╚══════════════════════════════════════╝%b\n" "$BANNER_CYAN" "$NC"
 
+    local ip uptime ram disk cpu_model cpu_usage
+    local tloc tutc ntp tz
 
+    ip="$(get_ip)"
+    uptime="$(uptime -p)"
+    ram="$(free -m | awk '/Mem:/ {print $3 "/" $2 " MB"}')"
+    disk="$(df -h / | awk 'NR==2 {print $3 "/" $2}')"
 
+    # CPU modelo
+    cpu_model="$(lscpu | awk -F: '/Model name/ {print $2}' | sed 's/^ *//')"
 
-local ip uptime ram disk tloc tutc ntp tz
-ip="$(get_ip)"
-uptime="$(uptime -p)"
-ram="$(free -m | awk '/Mem:/ {print $3 "/" $2 " MB"}')"
-disk="$(df -h / | awk 'NR==2 {print $3 "/" $2}')"
+    # uso da CPU
+    cpu_usage="$(top -bn1 | awk '/Cpu\(s\)/ {print 100 - $8"%"}')"
 
-tloc="$(date '+%Y-%m-%d %H:%M:%S %Z')"
-tutc="$(date -u '+%Y-%m-%d %H:%M:%S UTC')"
-tz="$(timedatectl show -p Timezone --value 2>/dev/null)"
-ntp="$(timedatectl show -p NTPSynchronized --value 2>/dev/null)"
+    tloc="$(date '+%Y-%m-%d %H:%M:%S %Z')"
+    tutc="$(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+    tz="$(timedatectl show -p Timezone --value 2>/dev/null)"
+    ntp="$(timedatectl show -p NTPSynchronized --value 2>/dev/null)"
 
-echo -e " ${BANNER_YELLOW}🌐${NC} IP VPS   : ${BANNER_GREEN}${ip}${NC}"
-echo -e " ${BANNER_YELLOW}⏱️${NC} Uptime  : ${BANNER_YELLOW}${uptime}${NC}"
-echo -e " ${BANNER_YELLOW}🕒${NC} Hora    : ${BANNER_YELLOW}${tloc}${NC} | ${BANNER_YELLOW}${tutc}${NC}"
-echo -e " ${BANNER_YELLOW}🗺️${NC} TZ      : ${BANNER_YELLOW}${tz:-?}${NC} | ${BANNER_YELLOW}NTP=${ntp:-?}${NC}"
-echo -e " ${BANNER_YELLOW}🧠${NC} RAM     : ${BANNER_BLUE}${ram}${NC}"
-echo -e " ${BANNER_YELLOW}💽${NC} Disco   : ${BANNER_BLUE}${disk}${NC}"
-echo -e " ${BANNER_YELLOW}🌐${NC} WebSocket SSH : $(service_status maritima-ws)"
-echo -e " ${BANNER_YELLOW}🔐${NC} XRAY REALITY  : $(service_status xray)"
-echo -e " ${BANNER_YELLOW}🧩${NC} BadVPN UDPGW    : $(badvpn_label)"
+    echo -e " ${BANNER_YELLOW}🌐${NC} IP VPS   : ${BANNER_GREEN}${ip}${NC}"
+    echo -e " ${BANNER_YELLOW}⏱️${NC} Uptime   : ${BANNER_YELLOW}${uptime}${NC}"
+    echo -e " ${BANNER_YELLOW}⚙️${NC} CPU      : ${BANNER_BLUE}${cpu_model}${NC}"
+    echo -e " ${BANNER_YELLOW}📊${NC} CPU Uso  : ${BANNER_BLUE}${cpu_usage}${NC}"
+    echo -e " ${BANNER_YELLOW}🧠${NC} RAM      : ${BANNER_BLUE}${ram}${NC}"
+    echo -e " ${BANNER_YELLOW}💽${NC} Disco    : ${BANNER_BLUE}${disk}${NC}"
+    echo -e " ${BANNER_YELLOW}🕒${NC} Hora     : ${BANNER_YELLOW}${tloc}${NC} | ${BANNER_YELLOW}${tutc}${NC}"
+    echo -e " ${BANNER_YELLOW}🗺️${NC} TZ       : ${BANNER_YELLOW}${tz:-?}${NC} | ${BANNER_YELLOW}NTP=${ntp:-?}${NC}"
+    echo -e " ${BANNER_YELLOW}🌐${NC} WebSocket SSH : $(service_status maritima-ws)"
+    echo -e " ${BANNER_YELLOW}🔐${NC} XRAY REALITY  : $(service_status xray)"
+    echo -e " ${BANNER_YELLOW}🧩${NC} BadVPN UDPGW  : $(badvpn_label)"
 
-pause
+    pause
 }
 
 #============DROPBEAR ATIVAR/DESATIVAR/STATUS=================
